@@ -1,0 +1,27 @@
+{
+  "name": "notes",
+  "version": "1.0.0",
+  "main": "server.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server",
+    "dev":"nodemon server"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "bcryptjs": "^2.4.3",
+    "concurrently": "^5.3.0",
+    "config": "^3.3.1",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-validator": "^6.6.1",
+    "jsonwebtoken": "^8.5.1",
+    "jwt-decode": "^2.2.0",
+    "mongoose": "^5.9.28",
+    "path": "^0.12.7",
+    "react-router-dom": "^5.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.12"
+  }
+}
