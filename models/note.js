@@ -15,6 +15,12 @@ const NoteSchema = new mongoose.Schema({
         type: String,
         required: [true, "Please add a description"],
       },
+      dueDate: {
+        type: String,
+      },
+      completed: {
+        type: Boolean,
+      },
     },
   ],
 });

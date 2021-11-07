@@ -21,11 +21,11 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    let { title, description } = req.body;
+    let { title, description, dueDate, completed } = req.body;
 
     let newNote = {
       user: req.user.id,
-      notes: [{ title, description }],
+      notes: [{ title, description, dueDate, completed }],
     };
 
     try {
@@ -41,7 +41,7 @@ router.post(
       res.json(note);
     } catch (err) {
       console.error(err.message);
-      res.status(500).send("Server Error");
+      res.status(500).send("Server Error here");
     }
   }
 );
@@ -63,17 +63,12 @@ router.get("/notes", auth, async (req, res) => {
 // get note by id
 router.get("/notes/:id", auth, async (req, res) => {
   try {
-    const note = await Note.findOne({
-      user: req.user.id,
-    });
+    const note = await Note.find(
+      { "notes._id": req.params.id },
+      { "notes.$": 1 }
+    );
 
-    const reqNote = note.notes.filter((note) => note.id === req.params.id);
-
-    if (reqNote.length === 0) {
-      return res.status(401).json({ msg: "Note doesn't exist" });
-    }
-
-    return res.status(200).json({ success: true, note: reqNote[0] });
+    return res.status(200).json({ success: true, note: note[0].notes[0] });
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Server Error");
@@ -82,7 +77,7 @@ router.get("/notes/:id", auth, async (req, res) => {
 
 // Modify note
 router.put("/notes/:id", auth, async (req, res) => {
-  const { title, description } = req.body;
+  const { title, description, completed } = req.body;
 
   if (title === "" || description === "") {
     return res.status(200).json({ success: false, note: {} });
@@ -97,10 +92,10 @@ router.put("/notes/:id", auth, async (req, res) => {
       return res.status(401).json({ msg: "Note doesn't exist" });
     }
 
-    note.notes.filter((note) => note.id === req.params.id)[0].title = title;
-    note.notes.filter(
-      (note) => note.id === req.params.id
-    )[0].description = description;
+    note.notes.filter((n) => n.id === req.params.id)[0].title = title;
+    note.notes.filter((n) => n.id === req.params.id)[0].description =
+      description;
+    note.notes.filter((n) => n.id === req.params.id)[0].completed = completed;
 
     const response = await note.save();
 
@@ -118,18 +113,11 @@ router.put("/notes/:id", auth, async (req, res) => {
 //delete note
 router.delete("/notes/:id", auth, async (req, res) => {
   try {
-    const note = await Note.findOne({
-      user: req.user.id,
-    });
-
-    if (note.notes.filter((note) => note.id === req.params.id).length === 0) {
-      return res.status(401).json({ msg: "Note doesn't exist" });
-    }
-
-    const index = note.notes.map((item) => item.id).indexOf(req.params.id);
-
-    note.notes.splice(index, 1);
-    await note.save();
+    await Note.updateOne(
+      {},
+      { $pull: { notes: { _id: req.params.id } } },
+      { multi: true }
+    );
 
     return res.status(200).json({ success: true, note: {} });
   } catch (error) {
@@ -138,10 +126,11 @@ router.delete("/notes/:id", auth, async (req, res) => {
   }
 });
 
+//Delete User account and the associated notes
 router.delete("/notes", auth, async (req, res) => {
   try {
-    const user = await User.findOneAndDelete({ _id: req.user.id });
-    const notes = await Note.findOneAndDelete({ user: req.user.id });
+    await User.findOneAndDelete({ _id: req.user.id });
+    await Note.findOneAndDelete({ user: req.user.id });
 
     if (!user) {
       return res.status(400).json({ msg: "User doesn't exist" });
