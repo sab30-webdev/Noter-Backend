@@ -1,4 +1,0 @@
-{
-  "mongoURI": "mongodb+srv://sabarinath:wW9RgRYmFAjEb9fX@notes.5ajtm.mongodb.net/Notes?retryWrites=true&w=majority",
-  "jwtSecret": "topsecret"
-}
