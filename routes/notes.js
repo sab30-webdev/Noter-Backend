@@ -141,14 +141,14 @@ router.delete("/notes/:id", auth, async (req, res) => {
 //Delete User account and the associated notes
 router.delete("/notes", auth, async (req, res) => {
   try {
-    await User.findOneAndDelete({ _id: req.user.id });
+    const user = await User.findOneAndDelete({ _id: req.user.id });
     await Note.findOneAndDelete({ user: req.user.id });
 
     if (!user) {
       return res.status(400).json({ msg: "User doesn't exist" });
     }
 
-    return res.status(200).json({ msg: "User deleted" });
+    return res.status(200).json({ msg: "User removed" });
   } catch (error) {
     console.log(error);
   }
