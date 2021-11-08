@@ -126,7 +126,7 @@ router.put("/notes/:id", auth, async (req, res) => {
 router.delete("/notes/:id", auth, async (req, res) => {
   try {
     await Note.updateOne(
-      {},
+      { user: req.user.id },
       { $pull: { notes: { _id: req.params.id } } },
       { multi: true }
     );
