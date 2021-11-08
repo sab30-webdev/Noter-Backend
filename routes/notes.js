@@ -84,26 +84,38 @@ router.put("/notes/:id", auth, async (req, res) => {
   }
 
   try {
-    const note = await Note.findOne({
-      user: req.user.id,
-    });
+    const note = await Note.findOne(
+      {
+        user: req.user.id,
+        "notes._id": req.params.id,
+      },
+      { notes: { $elemMatch: { _id: req.params.id } } }
+    );
 
-    if (note.notes.filter((note) => note.id === req.params.id).length === 0) {
+    if (!note) {
       return res.status(401).json({ msg: "Note doesn't exist" });
     }
 
-    note.notes.filter((n) => n.id === req.params.id)[0].title = title;
-    note.notes.filter((n) => n.id === req.params.id)[0].description =
-      description;
-    note.notes.filter((n) => n.id === req.params.id)[0].completed = completed;
+    await Note.updateOne(
+      {
+        user: req.user.id,
+        "notes._id": req.params.id,
+      },
+      {
+        $set: {
+          "notes.$": {
+            title,
+            description,
+            dueDate: note.notes[0].dueDate,
+            completed,
+          },
+        },
+      }
+    );
 
-    const response = await note.save();
-
-    const updatedNote = response.notes.filter(
-      (note) => note.id === req.params.id
-    )[0];
-
-    return res.status(200).json({ success: true, note: updatedNote });
+    return res
+      .status(200)
+      .json({ success: true, note: { title, description, completed } });
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Server Error");
